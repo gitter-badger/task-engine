@@ -39,7 +39,7 @@
         <link rel="stylesheet" href="..\gitbook/style.css">
         
         
-    <div class="book" data-github="skyao/task-engine" data-level="1.1" data-basepath=".." data-revision="1417774208921">
+    <div class="book" data-github="skyao/task-engine" data-level="1.1" data-basepath=".." data-revision="1417774699999">
     <div class="book-header">
     <!-- Actions Left -->
     
@@ -139,7 +139,29 @@
                 
                     <section class="normal" id="section-gitbook_4">
                     
-                        <p>TBD...</p>
+                        <p><strong>Task engine is a library which helps us to execute all kinds of asynchronize tasks easily.</strong></p>
+<h1 id="original-requirements">Original Requirements</h1>
+<p>Before I begin to write down this library, I met many similar requirements in my daily development about how to execute asynchronize tasks:</p>
+<ol>
+<li>At first, I coded by myself: for example, start java thread, take care every detail. </li>
+<li>Later I found that the JDK built-in Executor framework (since JDK 5.0) is very helpful to fulfill such requirements. </li>
+<li>But Executors are not enough for some common requirements, such as duplication detection, task retry, task priority, task deadline...... So I have to do many enhancement in different projects. </li>
+<li>Sometimes we will have the requirements about task schedule like starting this task 10 minutes later, or execute it 10 times for each hour. This is always called &quot;timer&quot;.</li>
+<li>We have to support task persistent so that we won&#39;t lost some unfinished task after restart or crash.</li>
+<li>More complex, in a cluster environment, we will to execute the tasks (perhaps millions) in many servers. How to balance the work load? How to avoid task duplicated or loss? </li>
+</ol>
+<h1 id="exists-solutions">Exists Solutions</h1>
+<p>To fulfill the requirements list above, we used many solutions: timer, message queue, and do many customized work. </p>
+<p>And the most important, we always choose different solution for different projects for all kinds reasons: the requirements, the server platform, the 3pp library we like......</p>
+<p>It really waste many time and cost.</p>
+<h1 id="decision">Decision</h1>
+<p>So I would like to collect these requirements and try to provide a common solution (as I named &quot;task engine&quot;):</p>
+<ol>
+<li>it helps to execute asynchronize tasks</li>
+<li>it should provide several different implementations to fulfill different scene</li>
+<li>it should wrapper some mature framework/library/service to avoid duplicated work</li>
+<li>but it should provide common interface and definitions to separate the task and the executors, so that we can choose or change implementations freely</li>
+</ol>
 
                     
                     </section>
