@@ -1,7 +1,0 @@
-.*
-!.gitignore
-lib
-*.iml
-_book
-node_modules
-
