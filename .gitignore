@@ -3,4 +3,6 @@
 *.iml
 lib
 pom.xml
+_book
+node_modules
 
