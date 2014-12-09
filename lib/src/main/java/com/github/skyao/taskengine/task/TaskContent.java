@@ -3,6 +3,7 @@ package com.github.skyao.taskengine.task;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -29,7 +30,7 @@ public class TaskContent {
      * create by task type without task parameter.
      *
      * @param type task type
-     * @throws IllegalStateException if task type is invalid
+     * @throws IllegalArgumentException if task type is invalid
      */
     public TaskContent(int type) {
         checkTaskType(type);
@@ -43,7 +44,7 @@ public class TaskContent {
      *
      * @param type       task type
      * @param parameters task parameters
-     * @throws IllegalStateException if task type is invalid
+     * @throws IllegalArgumentException if task type is invalid
      * @throws java.lang.NullPointerException if parameters is null
      */
     public TaskContent(int type, TaskParameter... parameters) {
@@ -55,7 +56,7 @@ public class TaskContent {
     }
 
     private void checkTaskType(int type) {
-        checkState(type > 0, "invalid type=" + type + ",it should greater than zero.");
+        checkArgument(type > 0, "invalid type=" + type + ",it should greater than zero.");
     }
 
     /**
