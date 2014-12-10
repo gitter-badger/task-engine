@@ -1,6 +1,7 @@
 package com.github.skyao.taskengine.task;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * task plan about when to execute this task.
@@ -37,7 +38,7 @@ public class TaskPlan {
     }
 
     /**
-     * get start time.
+     * get start time when this .
      *
      * @return start time in timestamp
      */
@@ -46,9 +47,9 @@ public class TaskPlan {
     }
 
     /**
-     * set start time in timestamp.
+     * set start time.
      *
-     * @param start start time
+     * @param start start time in timestamp
      * @throws IllegalArgumentException if start time is not greater than zero
      */
     public void setStart(long start) {
@@ -65,26 +66,43 @@ public class TaskPlan {
         return next;
     }
 
+    /**
+     * set next trigger time to execute this task.
+     *
+     * @param next next trigger time in timestamp
+     * @throws IllegalArgumentException if next trigger time is not greater than zero
+     */
     public void setNext(long next) {
+        checkArgument(next > 0, "next trigger time should greater than zero: next=" + next);
+
         this.next = next;
     }
 
     /**
-     * get last execution time..
+     * get last execute time.
      *
-     * @return last execution time in timestamp
+     * @return last execute time in timestamp
      */
     public long getLast() {
         return last;
     }
 
+    /**
+     * set last execute time.
+     *
+     * @param last last execute time in timestamp
+     * @throws IllegalArgumentException if last execute time is not greater than zero
+     */
     public void setLast(long last) {
+        checkArgument(last > 0, "next trigger time should greater than zero: last=" + last);
+
         this.last = last;
     }
 
     /**
      * get retry plan.
-     * @return retry plan
+     *
+     * @return retry plan, null if no retry.
      */
     public RepeatPlan getRetry() {
         return retry;
@@ -94,49 +112,60 @@ public class TaskPlan {
      * set retry plan.
      *
      * @param retryPlan retry plan
+     * @throws java.lang.NullPointerException if retryPlan is null
      */
     public void setRetry(RepeatPlan retryPlan) {
+        checkNotNull(retryPlan, "retry plan should not be null");
         this.retry = retryPlan;
     }
 
     /**
-     * get a default task plan.
+     * get schedule plan.
      *
-     * @return default task plan.
+     * @return schedule plan, null if this task only execute once.
      */
-    public static TaskPlan defaultPlan() {
-        TaskPlan plan = new TaskPlan();
-        //TBD
-        return plan;
+    public RepeatPlan getSchedule() {
+        return schedule;
     }
 
     /**
-     * task repeat plan about how to execute this task repeatedly.
+     * set schedule plan.
      *
+     * @param schedulePlan schedule plan
+     * @throws java.lang.NullPointerException if schedulePlan is null
+     */
+    public void setSchedule(RepeatPlan schedulePlan) {
+        checkNotNull(schedulePlan, "schedule plan should not be null");
+
+        this.schedule = schedulePlan;
+    }
+
+    /**
+     * task execute plan about how to execute this task repeatedly.
      */
     public static class RepeatPlan {
-        private boolean enabled = true;
+        private boolean enable = true;
         private int max = 1;
         private int executed = 0;
         private long interval = 0;
         private long deadline = 0;
 
         /**
-         * check if repeat plan enabled.
+         * check if repeat plan enable.
          *
-         * @return true if repeat plan enabled.
+         * @return true if repeat plan enable.
          */
-        public boolean isEnabled() {
-            return enabled;
+        public boolean isEnable() {
+            return enable;
         }
 
         /**
-         * set repeat plan enabled or not.
+         * set repeat plan enable or not.
          *
-         * @param enabled enabled or not
+         * @param enable enable or not
          */
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
+        public void setEnable(boolean enable) {
+            this.enable = enable;
         }
 
         /**
@@ -241,7 +270,7 @@ public class TaskPlan {
             }
 
             // if deadline exists, check nextExecuteTime
-            // consider interval if it is enabled
+            // consider interval if it is enable
             long nextExecuteTime = interval > 0 ? (System.currentTimeMillis() + interval) : System
                     .currentTimeMillis();
             return nextExecuteTime <= deadline;
