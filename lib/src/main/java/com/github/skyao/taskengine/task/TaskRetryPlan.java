@@ -13,7 +13,7 @@ public class TaskRetryPlan {
 
     private long deadline;
 
-    private long cooldownTime;
+    private long interval;
 
     /**
      * get max times of execution.
@@ -79,24 +79,24 @@ public class TaskRetryPlan {
     }
 
     /**
-     * get retry cool down time.
+     * get interval.
      *
-     * @return retry cool down time (in millisecond)
+     * @return interval (in millisecond)
      */
-    public long getCooldownTime() {
-        return cooldownTime;
+    public long getInterval() {
+        return interval;
     }
 
     /**
-     * set retry cool down time.
+     * set interval.
      *
-     * @param cooldownTime retry cool down time, in millisecond
-     * @throws java.lang.IllegalArgumentException if cool down time is not greater than zero
+     * @param interval retry interval, in millisecond
+     * @throws java.lang.IllegalArgumentException if interval is not greater than zero
      */
-    public void setCooldownTime(long cooldownTime) {
-        checkArgument(cooldownTime >= 0, "cool down time should greater than zero: cooldownTime=" + cooldownTime);
+    public void setInterval(long interval) {
+        checkArgument(interval >= 0, "interval should greater than or equal to zero: interval=" + interval);
 
-        this.cooldownTime = cooldownTime;
+        this.interval = interval;
     }
 
     /**
@@ -119,7 +119,7 @@ public class TaskRetryPlan {
 
         // check deadline
         // consider cool down time if it is enabled
-        long nextRetryTimestamp = cooldownTime > 0 ? (System.currentTimeMillis() + cooldownTime) : System
+        long nextRetryTimestamp = interval > 0 ? (System.currentTimeMillis() + interval) : System
                 .currentTimeMillis();
         return nextRetryTimestamp <= deadline;
     }
@@ -127,7 +127,7 @@ public class TaskRetryPlan {
     @Override
     public String toString() {
         return "RetryPlan [maxTimes=" + maxTimes + ", triedTimes=" + triedTimes + ", deadline=" + deadline
-                + ", cooldownTime=" + cooldownTime + "]";
+                + ", interval=" + interval + "]";
     }
 
     /**
@@ -142,7 +142,7 @@ public class TaskRetryPlan {
         // by default no deadline for retry period
         plan.deadline = 0;
         // by default no cool down time
-        plan.cooldownTime = 0;
+        plan.interval = 0;
         return plan;
     }
 
@@ -156,7 +156,7 @@ public class TaskRetryPlan {
         }
 
         TaskRetryPlan that = (TaskRetryPlan) o;
-        if (cooldownTime != that.cooldownTime) {
+        if (interval != that.interval) {
             return false;
         }
         if (deadline != that.deadline) {
@@ -173,7 +173,7 @@ public class TaskRetryPlan {
         int result = maxTimes;
         result = 31 * result + triedTimes;
         result = 31 * result + (int) (deadline ^ (deadline >>> 32));
-        result = 31 * result + (int) (cooldownTime ^ (cooldownTime >>> 32));
+        result = 31 * result + (int) (interval ^ (interval >>> 32));
         return result;
     }
 }

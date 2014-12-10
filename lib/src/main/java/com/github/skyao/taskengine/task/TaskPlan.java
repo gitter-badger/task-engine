@@ -4,7 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * task plan about when to execute this task..
+ * task plan about when to execute this task.
+ *
+ * @author Sky Ao
  */
 public class TaskPlan {
     private int priority = TaskPriority.NORMAL;
