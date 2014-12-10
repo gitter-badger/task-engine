@@ -141,6 +141,15 @@ public class TaskPlan {
     }
 
     /**
+     * use builder to help building new plan.
+     *
+     * @return builder instance
+     */
+    public static Builder newPlan() {
+        return new Builder();
+    }
+
+    /**
      * task execute plan about how to execute this task repeatedly.
      */
     public static class RepeatPlan {
@@ -274,6 +283,24 @@ public class TaskPlan {
             long nextExecuteTime = interval > 0 ? (System.currentTimeMillis() + interval) : System
                     .currentTimeMillis();
             return nextExecuteTime <= deadline;
+        }
+    }
+
+    public static class Builder {
+        private final TaskPlan plan;
+
+        public Builder() {
+            this.plan = new TaskPlan();
+        }
+
+        public Builder priority(int priority) {
+            this.plan.setPriority(priority);
+            return this;
+        }
+
+        public Builder executeWhen(long start) {
+            this.plan.setStart(start);
+            return this;
         }
     }
 }
