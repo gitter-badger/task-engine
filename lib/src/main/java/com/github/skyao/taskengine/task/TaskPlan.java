@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class TaskPlan {
     private int priority;
     private long start;
+    private long deadline;
     private RepeatPlan schedule;
     private RepeatPlan retry;
 
@@ -64,6 +65,28 @@ public class TaskPlan {
         this.start = start;
     }
 
+
+    /**
+     * get deadline of this task.
+     *
+     * @return deadline in timestamp
+     */
+    public long getDeadline() {
+        return deadline;
+    }
+
+    /**
+     * set deadline in timestamp.
+     *
+     * @param deadline deadline in timestamp, 0 means no deadline
+     * @throws java.lang.IllegalArgumentException if deadline is not greater than or equals to 0
+     */
+    public void setDeadline(long deadline) {
+        checkArgument(deadline >= 0, "deadline should greater than or equals to 0: deadline=" + deadline);
+
+        this.deadline = deadline;
+    }
+
     /**
      * get retry plan.
      *
@@ -111,6 +134,9 @@ public class TaskPlan {
         buffer.append('{');
         buffer.append("priority=").append(priority);
         buffer.append(",start=").append(start);
+        if (deadline > 0) {
+            buffer.append(",deadline=").append(deadline);
+        }
         if (schedule != null) {
             buffer.append(",schedule=").append(schedule);
         }
@@ -138,7 +164,7 @@ public class TaskPlan {
         private int max = 1;
         private int executed = 0;
         private long interval = 0;
-        private long deadline = 0;
+
 
         /**
          * check if repeat plan enable.
@@ -222,32 +248,21 @@ public class TaskPlan {
         }
 
         /**
-         * get deadline.
+         * check if this task need repeat to execute any more without deadline.
          *
-         * @return deadline in timestamp
+         * @return true if this task need repeat to execute
          */
-        public long getDeadline() {
-            return deadline;
-        }
-
-        /**
-         * set deadline in timestamp.
-         *
-         * @param deadline deadline in timestamp, 0 means no deadline
-         * @throws java.lang.IllegalArgumentException if deadline is not greater than or equals to 0
-         */
-        public void setDeadline(long deadline) {
-            checkArgument(deadline >= 0, "deadline should greater than or equals to 0: deadline=" + deadline);
-
-            this.deadline = deadline;
+        public boolean needRepeat() {
+            return needRepeat(0L);
         }
 
         /**
          * check if this task need repeat to execute any more.
          *
+         * @param deadline deadline of this task, 0 means no deadline
          * @return true if this task need repeat to execute
          */
-        public boolean needRepeat() {
+        public boolean needRepeat(long deadline) {
             // check max execute times and executed times first
             if (max <= 1 || this.executed >= max) {
                 return false;
@@ -275,9 +290,6 @@ public class TaskPlan {
                 buffer.append(",executed=").append(executed);
                 if (interval > 0) {
                     buffer.append(",interval=").append(interval);
-                }
-                if (deadline > 0) {
-                    buffer.append(",deadline=").append(deadline);
                 }
             } else {
                 buffer.append("enable=false");
@@ -353,50 +365,6 @@ public class TaskPlan {
              */
             public RepeatPlanBuilder intervalInHours(int hours) {
                 this.repeatPlan.setInterval(hours * 60 * 60 * 1000);
-                return this;
-            }
-
-            /**
-             * set exact deadline timestamp.
-             *
-             * @param deadline deadline
-             * @return this builder itself to chain
-             */
-            public RepeatPlanBuilder deadline(long deadline) {
-                this.repeatPlan.setDeadline(deadline);
-                return this;
-            }
-
-            /**
-             * set deadline to specified seconds later.
-             *
-             * @param seconds specified seconds
-             * @return this builder itself to chain
-             */
-            public RepeatPlanBuilder deadlineAfterSeconds(int seconds) {
-                this.repeatPlan.setDeadline(System.currentTimeMillis() + seconds * 1000);
-                return this;
-            }
-
-            /**
-             * set deadline to specified minutes later.
-             *
-             * @param minutes specified minutes
-             * @return this builder itself to chain
-             */
-            public RepeatPlanBuilder deadlineAfterMinutes(int minutes) {
-                this.repeatPlan.setDeadline(System.currentTimeMillis() + minutes * 60 * 1000);
-                return this;
-            }
-
-            /**
-             * set deadline to specified hours later.
-             *
-             * @param hours specified hours
-             * @return this builder itself to chain
-             */
-            public RepeatPlanBuilder deadlineAfterHours(int hours) {
-                this.repeatPlan.setDeadline(System.currentTimeMillis() + hours * 60 * 60 * 1000);
                 return this;
             }
         }
@@ -495,6 +463,51 @@ public class TaskPlan {
          */
         public Builder startAfterSeconds(int seconds) {
             this.plan.setStart(System.currentTimeMillis() + seconds * 1000);
+            return this;
+        }
+
+
+        /**
+         * set exact deadline timestamp.
+         *
+         * @param deadline deadline
+         * @return this builder itself to chain
+         */
+        public Builder deadline(long deadline) {
+            this.plan.setDeadline(deadline);
+            return this;
+        }
+
+        /**
+         * set deadline to specified seconds later.
+         *
+         * @param seconds specified seconds
+         * @return this builder itself to chain
+         */
+        public Builder deadlineAfterSeconds(int seconds) {
+            this.plan.setDeadline(System.currentTimeMillis() + seconds * 1000);
+            return this;
+        }
+
+        /**
+         * set deadline to specified minutes later.
+         *
+         * @param minutes specified minutes
+         * @return this builder itself to chain
+         */
+        public Builder deadlineAfterMinutes(int minutes) {
+            this.plan.setDeadline(System.currentTimeMillis() + minutes * 60 * 1000);
+            return this;
+        }
+
+        /**
+         * set deadline to specified hours later.
+         *
+         * @param hours specified hours
+         * @return this builder itself to chain
+         */
+        public Builder deadlineAfterHours(int hours) {
+            this.plan.setDeadline(System.currentTimeMillis() + hours * 60 * 60 * 1000);
             return this;
         }
 
