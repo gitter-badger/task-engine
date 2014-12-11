@@ -17,8 +17,8 @@ public class TaskPlanTest {
     @Test
     public void testBuilderWithRepeatPlan() {
         TaskPlan.Builder builder = TaskPlan.newBuilder().priorityHigh().startAfterSeconds(15);
-        builder.enableSchedule().max(10).interval(2 * 1000).deadline(1);
-        builder.enableRetry().max(3).interval(1 * 1000).deadline(1);
+        builder.enableSchedule().max(10).intervalInHours(2);
+        builder.enableRetry().max(3).intervalInSeconds(10).deadlineAfterSeconds(60);
         TaskPlan plan = builder.build();
         assertThat(plan.getRetry()).isNotNull();
         assertThat(plan.getSchedule()).isNotNull();

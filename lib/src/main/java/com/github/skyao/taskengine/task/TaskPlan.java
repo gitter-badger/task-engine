@@ -11,8 +11,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class TaskPlan {
     private int priority;
     private long start;
-    private long next;
-    private long last;
     private RepeatPlan schedule;
     private RepeatPlan retry;
 
@@ -47,7 +45,7 @@ public class TaskPlan {
     }
 
     /**
-     * get start time when this .
+     * get start time when this task should begin to execute .
      *
      * @return start time in timestamp
      */
@@ -64,48 +62,6 @@ public class TaskPlan {
     public void setStart(long start) {
         checkArgument(start > 0, "start time should greater than zero: start=" + start);
         this.start = start;
-    }
-
-    /**
-     * get next trigger time to execute this task.
-     *
-     * @return next trigger time in timestamp
-     */
-    public long getNext() {
-        return next;
-    }
-
-    /**
-     * set next trigger time to execute this task.
-     *
-     * @param next next trigger time in timestamp
-     * @throws IllegalArgumentException if next trigger time is not greater than zero
-     */
-    public void setNext(long next) {
-        checkArgument(next > 0, "next trigger time should greater than zero: next=" + next);
-
-        this.next = next;
-    }
-
-    /**
-     * get last execute time.
-     *
-     * @return last execute time in timestamp
-     */
-    public long getLast() {
-        return last;
-    }
-
-    /**
-     * set last execute time.
-     *
-     * @param last last execute time in timestamp
-     * @throws IllegalArgumentException if last execute time is not greater than zero
-     */
-    public void setLast(long last) {
-        checkArgument(last > 0, "next trigger time should greater than zero: last=" + last);
-
-        this.last = last;
     }
 
     /**
@@ -155,8 +111,6 @@ public class TaskPlan {
         buffer.append('{');
         buffer.append("priority=").append(priority);
         buffer.append(",start=").append(start);
-        buffer.append(",next=").append(next);
-        buffer.append(",last=").append(last);
         if (schedule != null) {
             buffer.append(",schedule=").append(schedule);
         }
@@ -238,7 +192,7 @@ public class TaskPlan {
          * set executed times.
          *
          * @param executed executed times.
-         * @throws java.lang.IllegalArgumentException if interval is not greater than or quails to 0
+         * @throws java.lang.IllegalArgumentException if intervalInMilliseconds is not greater than or quails to 0
          */
         public void setExecuted(int executed) {
             checkArgument(executed >= 0, "executed times should greater than or equal to zero: executedTimes=" + executed);
@@ -247,22 +201,22 @@ public class TaskPlan {
         }
 
         /**
-         * get interval.
+         * get intervalInMilliseconds.
          *
-         * @return interval in milliseconds
+         * @return intervalInMilliseconds in milliseconds
          */
         public long getInterval() {
             return interval;
         }
 
         /**
-         * set interval in milliseconds
+         * set intervalInMilliseconds in milliseconds
          *
-         * @param interval interval in milliseconds, 0 means no interval
-         * @throws java.lang.IllegalArgumentException if interval is not greater than or quails to 0
+         * @param interval intervalInMilliseconds in milliseconds, 0 means no intervalInMilliseconds
+         * @throws java.lang.IllegalArgumentException if intervalInMilliseconds is not greater than or quails to 0
          */
         public void setInterval(long interval) {
-            checkArgument(interval >= 0, "interval should greater than or equal to zero: interval=" + interval);
+            checkArgument(interval >= 0, "intervalInMilliseconds should greater than or equal to zero: intervalInMilliseconds=" + interval);
 
             this.interval = interval;
         }
@@ -306,7 +260,7 @@ public class TaskPlan {
             }
 
             // if deadline exists, check nextExecuteTime
-            // consider interval if it is enable
+            // consider intervalInMilliseconds if it is enable
             long nextExecuteTime = interval > 0 ? (System.currentTimeMillis() + interval) : System
                     .currentTimeMillis();
             return nextExecuteTime <= deadline;
@@ -316,34 +270,133 @@ public class TaskPlan {
         public String toString() {
             StringBuilder buffer = new StringBuilder();
             buffer.append('{');
-            buffer.append("enable=").append(enable);
-            buffer.append(",max=").append(max);
-            buffer.append(",executed=").append(executed);
-            buffer.append(",interval=").append(interval);
-            buffer.append(",deadline=").append(deadline);
+            if (enable) {
+                buffer.append("max=").append(max);
+                buffer.append(",executed=").append(executed);
+                if (interval > 0) {
+                    buffer.append(",interval=").append(interval);
+                }
+                if (deadline > 0) {
+                    buffer.append(",deadline=").append(deadline);
+                }
+            } else {
+                buffer.append("enable=false");
+            }
             buffer.append('}');
             return buffer.toString();
         }
 
-        public static class Builder {
+        /**
+         * Builder to help to build a RepeatPlan.
+         */
+        public static class RepeatPlanBuilder {
             private final RepeatPlan repeatPlan;
 
-            public Builder(RepeatPlan repeatPlan) {
+            /**
+             * create a builder for specified repeat plan.
+             *
+             * @param repeatPlan repeat plan to build
+             */
+            public RepeatPlanBuilder(RepeatPlan repeatPlan) {
                 this.repeatPlan = repeatPlan;
             }
 
-            public Builder max(int max) {
+            /**
+             * set max repeat times.
+             *
+             * @param max max repeat times
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder max(int max) {
                 this.repeatPlan.setMax(max);
                 return this;
             }
 
-            public Builder interval(int interval) {
-                this.repeatPlan.setInterval(interval);
+            /**
+             * set interval in milliseconds.
+             *
+             * @param milliseconds interval in milliseconds
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder intervalInMilliseconds(long milliseconds) {
+                this.repeatPlan.setInterval(milliseconds);
                 return this;
             }
 
-            public Builder deadline(int deadline) {
+            /**
+             * set interval in seconds.
+             *
+             * @param seconds interval in seconds
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder intervalInSeconds(int seconds) {
+                this.repeatPlan.setInterval(seconds * 1000);
+                return this;
+            }
+
+            /**
+             * set interval in minutes.
+             *
+             * @param minutes interval in minutes
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder intervalInMinutes(int minutes) {
+                this.repeatPlan.setInterval(minutes * 60 * 1000);
+                return this;
+            }
+
+            /**
+             * set interval in hours.
+             *
+             * @param hours interval in hours
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder intervalInHours(int hours) {
+                this.repeatPlan.setInterval(hours * 60 * 60 * 1000);
+                return this;
+            }
+
+            /**
+             * set exact deadline timestamp.
+             *
+             * @param deadline deadline
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder deadline(long deadline) {
                 this.repeatPlan.setDeadline(deadline);
+                return this;
+            }
+
+            /**
+             * set deadline to specified seconds later.
+             *
+             * @param seconds specified seconds
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder deadlineAfterSeconds(int seconds) {
+                this.repeatPlan.setDeadline(System.currentTimeMillis() + seconds * 1000);
+                return this;
+            }
+
+            /**
+             * set deadline to specified minutes later.
+             *
+             * @param minutes specified minutes
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder deadlineAfterMinutes(int minutes) {
+                this.repeatPlan.setDeadline(System.currentTimeMillis() + minutes * 60 * 1000);
+                return this;
+            }
+
+            /**
+             * set deadline to specified hours later.
+             *
+             * @param hours specified hours
+             * @return this builder itself to chain
+             */
+            public RepeatPlanBuilder deadlineAfterHours(int hours) {
+                this.repeatPlan.setDeadline(System.currentTimeMillis() + hours * 60 * 60 * 1000);
                 return this;
             }
         }
@@ -368,7 +421,6 @@ public class TaskPlan {
             TaskPlan plan = new TaskPlan();
             plan.setPriority(TaskPriority.NORMAL);
             plan.setStart(System.currentTimeMillis());
-            plan.setNext(plan.getStart());
             return plan;
         }
 
@@ -421,7 +473,6 @@ public class TaskPlan {
          */
         public Builder startNow() {
             this.plan.setStart(System.currentTimeMillis());
-            this.plan.setNext(this.plan.getStart());
             return this;
         }
 
@@ -433,7 +484,6 @@ public class TaskPlan {
          */
         public Builder startAt(long start) {
             this.plan.setStart(start);
-            this.plan.setNext(this.plan.getStart());
             return this;
         }
 
@@ -445,20 +495,19 @@ public class TaskPlan {
          */
         public Builder startAfterSeconds(int seconds) {
             this.plan.setStart(System.currentTimeMillis() + seconds * 1000);
-            this.plan.setNext(this.plan.getStart());
             return this;
         }
 
-        public RepeatPlan.Builder enableSchedule() {
+        public RepeatPlan.RepeatPlanBuilder enableSchedule() {
             RepeatPlan repeatPlan = new RepeatPlan();
             this.plan.setSchedule(repeatPlan);
-            return new RepeatPlan.Builder(repeatPlan);
+            return new RepeatPlan.RepeatPlanBuilder(repeatPlan);
         }
 
-        public RepeatPlan.Builder enableRetry() {
+        public RepeatPlan.RepeatPlanBuilder enableRetry() {
             RepeatPlan repeatPlan = new RepeatPlan();
             this.plan.setRetry(repeatPlan);
-            return new RepeatPlan.Builder(repeatPlan);
+            return new RepeatPlan.RepeatPlanBuilder(repeatPlan);
         }
     }
 }
