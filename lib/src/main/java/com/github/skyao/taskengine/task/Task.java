@@ -17,12 +17,13 @@ public class Task {
      *
      * @param content task content
      * @throws NullPointerException if content is null
+     * @see TaskPlan.Builder#newDefaultPlan()
      */
     public Task(TaskContent content) {
         checkNotNull(content, "task content should not be null");
 
         this.content = content;
-        this.plan = TaskPlan.defaultPlan();
+        this.plan = TaskPlan.Builder.newDefaultPlan();
     }
 
     /**

@@ -9,12 +9,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Sky Ao
  */
 public class TaskPlan {
-    private int priority = TaskPriority.NORMAL;
-    private long start = System.currentTimeMillis();
-    private long next = start;
-    private long last = 0;
+    private int priority;
+    private long start;
+    private long next;
+    private long last;
     private RepeatPlan schedule;
     private RepeatPlan retry;
+
+    /**
+     * create a default plan.
+     *
+     * @return new instance of default plan
+     */
+    public static TaskPlan newDefaultPlan() {
+        return Builder.newDefaultPlan();
+    }
 
     /**
      * set task priority.
@@ -140,12 +149,30 @@ public class TaskPlan {
         this.schedule = schedulePlan;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append('{');
+        buffer.append("priority=").append(priority);
+        buffer.append(",start=").append(start);
+        buffer.append(",next=").append(next);
+        buffer.append(",last=").append(last);
+        if (schedule != null) {
+            buffer.append(",schedule=").append(schedule);
+        }
+        if (retry != null) {
+            buffer.append(",retry=").append(retry);
+        }
+        buffer.append('}');
+        return buffer.toString();
+    }
+
     /**
      * use builder to help building new plan.
      *
      * @return builder instance
      */
-    public static Builder newPlan() {
+    public static Builder newBuilder() {
         return new Builder();
     }
 
@@ -284,23 +311,154 @@ public class TaskPlan {
                     .currentTimeMillis();
             return nextExecuteTime <= deadline;
         }
+
+        @Override
+        public String toString() {
+            StringBuilder buffer = new StringBuilder();
+            buffer.append('{');
+            buffer.append("enable=").append(enable);
+            buffer.append(",max=").append(max);
+            buffer.append(",executed=").append(executed);
+            buffer.append(",interval=").append(interval);
+            buffer.append(",deadline=").append(deadline);
+            buffer.append('}');
+            return buffer.toString();
+        }
+
+        public static class Builder {
+            private final RepeatPlan repeatPlan;
+
+            public Builder(RepeatPlan repeatPlan) {
+                this.repeatPlan = repeatPlan;
+            }
+
+            public Builder max(int max) {
+                this.repeatPlan.setMax(max);
+                return this;
+            }
+
+            public Builder interval(int interval) {
+                this.repeatPlan.setInterval(interval);
+                return this;
+            }
+
+            public Builder deadline(int deadline) {
+                this.repeatPlan.setDeadline(deadline);
+                return this;
+            }
+        }
     }
 
     public static class Builder {
         private final TaskPlan plan;
 
+        /**
+         * create new builder.
+         */
         public Builder() {
-            this.plan = new TaskPlan();
+            this.plan = Builder.newDefaultPlan();
         }
 
+        /**
+         * build a new default plan.
+         *
+         * @return new instance of default plan
+         */
+        public static TaskPlan newDefaultPlan() {
+            TaskPlan plan = new TaskPlan();
+            plan.setPriority(TaskPriority.NORMAL);
+            plan.setStart(System.currentTimeMillis());
+            plan.setNext(plan.getStart());
+            return plan;
+        }
+
+        /**
+         * build task plan.
+         *
+         * @return task plan
+         */
+        public TaskPlan build() {
+            return plan;
+        }
+
+        /**
+         * set priority by specified value.
+         *
+         * @param priority task priority
+         * @return this builder itself to chain
+         */
         public Builder priority(int priority) {
             this.plan.setPriority(priority);
             return this;
         }
 
-        public Builder executeWhen(long start) {
-            this.plan.setStart(start);
+        /**
+         * set priority to HIGH.
+         *
+         * @return this builder itself to chain
+         * @see TaskPriority#HIGH
+         */
+        public Builder priorityHigh() {
+            this.plan.setPriority(TaskPriority.HIGH);
             return this;
+        }
+
+        /**
+         * set priority to LOW.
+         *
+         * @return this builder itself to chain
+         * @see TaskPriority#HIGH
+         */
+        public Builder priorityLow() {
+            this.plan.setPriority(TaskPriority.LOW);
+            return this;
+        }
+
+        /**
+         * start to execute task immediately.
+         *
+         * @return this builder itself to chain
+         */
+        public Builder startNow() {
+            this.plan.setStart(System.currentTimeMillis());
+            this.plan.setNext(this.plan.getStart());
+            return this;
+        }
+
+        /**
+         * start to execute task at specified timestamp.
+         *
+         * @param start task start time in timestamp
+         * @return this builder itself to chain
+         */
+        public Builder startAt(long start) {
+            this.plan.setStart(start);
+            this.plan.setNext(this.plan.getStart());
+            return this;
+        }
+
+        /**
+         * start to execute task after specified seconds.
+         *
+         * @param seconds specified seconds
+         * @return this builder itself to chain
+         */
+        public Builder startAfterSeconds(int seconds) {
+            this.plan.setStart(System.currentTimeMillis() + seconds * 1000);
+            this.plan.setNext(this.plan.getStart());
+            return this;
+        }
+
+        public RepeatPlan.Builder enableSchedule() {
+            RepeatPlan repeatPlan = new RepeatPlan();
+            this.plan.setSchedule(repeatPlan);
+            return new RepeatPlan.Builder(repeatPlan);
+        }
+
+        public RepeatPlan.Builder enableRetry() {
+            RepeatPlan repeatPlan = new RepeatPlan();
+            this.plan.setRetry(repeatPlan);
+            return new RepeatPlan.Builder(repeatPlan);
         }
     }
 }
